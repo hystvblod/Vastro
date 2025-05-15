@@ -1,0 +1,14 @@
+const ZODIAC_SIGNS = [
+  { name: "Bélier", symbol: "♈", dates: "21 mars - 19 avril" },
+  { name: "Taureau", symbol: "♉", dates: "20 avril - 20 mai" },
+  { name: "Gémeaux", symbol: "♊", dates: "21 mai - 20 juin" },
+  { name: "Cancer", symbol: "♋", dates: "21 juin - 22 juillet" },
+  { name: "Lion", symbol: "♌", dates: "23 juillet - 22 août" },
+  { name: "Vierge", symbol: "♍", dates: "23 août - 22 septembre" },
+  { name: "Balance", symbol: "♎", dates: "23 septembre - 22 octobre" },
+  { name: "Scorpion", symbol: "♏", dates: "23 octobre - 21 novembre" },
+  { name: "Sagittaire", symbol: "♐", dates: "22 novembre - 21 décembre" },
+  { name: "Capricorne", symbol: "♑", dates: "22 décembre - 19 janvier" },
+  { name: "Verseau", symbol: "♒", dates: "20 janvier - 18 février" },
+  { name: "Poissons", symbol: "♓", dates: "19 février - 20 mars" }
+];

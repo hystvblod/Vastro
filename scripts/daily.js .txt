@@ -1,0 +1,3 @@
+function getDailyHoroscope(sign) {
+  return `Aujourd'hui est une belle journée pour les ${sign} !`;
+}
