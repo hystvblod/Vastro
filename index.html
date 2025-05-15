@@ -1,13 +1,90 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vastro</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style/vastro.css" />
+  <script defer src="js/astrologie_core.js"></script>
+  <script defer src="js/i18n.js"></script>
+  <script defer src="js/horoscopes_fr.js"></script>
+  <script defer src="js/compatibilite_fr.js"></script>
+  <script defer src="js/vastrobot_fr.js"></script>
 </head>
 <body>
-  <h1>Bienvenue sur Vastro</h1>
-  <div id="app"></div>
-  <script src="app.js"></script>
+
+  <header class="header">
+    <h1 class="app-title">✨ Vastro</h1>
+    <div class="language-switcher">
+      <select id="lang-select">
+        <option value="fr">🇫🇷 Français</option>
+        <option value="en">🇬🇧 English</option>
+        <option value="es">🇪🇸 Español</option>
+        <option value="de">🇩🇪 Deutsch</option>
+        <option value="it">🇮🇹 Italiano</option>
+        <option value="nl">🇳🇱 Nederlands</option>
+        <option value="pt">🇧🇷 Português</option>
+        <option value="ar">🇸🇦 العربية</option>
+        <option value="ja">🇯🇵 日本語</option>
+      </select>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <section class="astro-section">
+      <h2 id="astro-title">🔮 Horoscope du jour</h2>
+      <p id="daily-horoscope" class="horoscope-text">Chargement...</p>
+    </section>
+
+    <section class="astro-section">
+      <h2>🌟 Calcul astrologique</h2>
+      <form id="astro-form">
+        <label>Nom :</label>
+        <input type="text" id="user-name" required />
+
+        <label>Date de naissance :</label>
+        <input type="date" id="birth-date" required />
+
+        <label>Heure de naissance :</label>
+        <input type="time" id="birth-time" />
+
+        <label>Ville de naissance :</label>
+        <input type="text" id="birth-city" placeholder="Paris..." />
+
+        <button type="submit">🧭 Calculer mon signe et mon ascendant</button>
+      </form>
+
+      <div id="resultats-astro" class="astro-results hidden">
+        <p><strong>Signe :</strong> <span id="signe-resultat"></span></p>
+        <p><strong>Ascendant :</strong> <span id="ascendant-resultat"></span></p>
+      </div>
+    </section>
+
+    <section class="astro-section">
+      <h2>💘 Compatibilité entre signes</h2>
+      <div class="compat-form">
+        <select id="signe1-select"></select>
+        <select id="signe2-select"></select>
+        <button id="check-compat">🔗 Vérifier</button>
+      </div>
+      <div id="compatibilite-resultat" class="compat-result"></div>
+    </section>
+
+    <section class="astro-section chatbot-zone">
+      <h2>🧠 VastroBot</h2>
+      <div id="chatbox" class="chatbox">
+        <div id="chat-messages" class="chat-messages"></div>
+        <div class="chat-input-zone">
+          <input type="text" id="chat-input" placeholder="Pose ta question astro..." />
+          <button id="send-btn">📩</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>© 2025 Vastro – Horoscope & Astrologie</p>
+  </footer>
+
 </body>
 </html>
