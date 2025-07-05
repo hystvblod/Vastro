@@ -1,72 +1,112 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const astroForm = document.getElementById("astro-form");
-  const resultats = document.getElementById("resultats-astro");
-  const signeEl = document.getElementById("signe-resultat");
-  const ascendantEl = document.getElementById("ascendant-resultat");
+// ========== js/astro_calc.js ==========
+
+// 1. Gestion de la langue multilingue
+let LANG = {};
+let langCode = localStorage.getItem("astro-lang") || "fr";
+
+function loadLang(code, callback) {
+  fetch(`lang/${code}.json`)
+    .then(r => r.json())
+    .then(obj => {
+      LANG = obj;
+      langCode = code;
+      localStorage.setItem("astro-lang", code);
+      if (callback) callback();
+    });
+}
+
+function t(key) {
+  return LANG[key] || key;
+}
+
+// 2. Fonctions astro (cities = ton array cities.json chargé AVANT)
+function getSigneSolaire(dateNaissance) {
+  const signes = [
+    { nom: t("Bélier"), start: "03-21", end: "04-19" },
+    { nom: t("Taureau"), start: "04-20", end: "05-20" },
+    { nom: t("Gémeaux"), start: "05-21", end: "06-20" },
+    { nom: t("Cancer"), start: "06-21", end: "07-22" },
+    { nom: t("Lion"), start: "07-23", end: "08-22" },
+    { nom: t("Vierge"), start: "08-23", end: "09-22" },
+    { nom: t("Balance"), start: "09-23", end: "10-22" },
+    { nom: t("Scorpion"), start: "10-23", end: "11-21" },
+    { nom: t("Sagittaire"), start: "11-22", end: "12-21" },
+    { nom: t("Capricorne"), start: "12-22", end: "01-19" },
+    { nom: t("Verseau"), start: "01-20", end: "02-18" },
+    { nom: t("Poissons"), start: "02-19", end: "03-20" }
+  ];
+  const [year, month, day] = dateNaissance.split('-');
+  const dateRef = `${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  for (const signe of signes) {
+    if (
+      (signe.start <= dateRef && dateRef <= signe.end) ||
+      (signe.start > signe.end && (dateRef >= signe.start || dateRef <= signe.end))
+    ) {
+      return signe.nom;
+    }
+  }
+  return t("Inconnu");
+}
+
+function findCity(nomVille, cities) {
+  const clean = str => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return cities.find(city => clean(city.name) === clean(nomVille));
+}
+
+function calculAscendant(dateNaissance, heureNaissance, nomVille, cities) {
+  const city = findCity(nomVille, cities);
+  if (!city) return t("Ville inconnue");
+
+  const lat = parseFloat(city.lat);
+  const lng = parseFloat(city.lng);
+
+  // Fuseau horaire simplifié par pays (adapte si besoin !)
+  let tzOffset = 3; // Default: Turquie
+  if (city.country === "FR") tzOffset = 1;
+  if (city.country === "CN") tzOffset = 8;
+  if (city.country === "RU") tzOffset = 3;
+  if (city.country === "US") tzOffset = -5;
+
+  const [year, month, day] = dateNaissance.split('-').map(Number);
+  const [hour, minute] = heureNaissance.split(':').map(Number);
+  const utcDate = new Date(Date.UTC(year, month - 1, day, hour - tzOffset, minute));
+
+  const JD = utcDate.getTime() / 86400000 + 2440587.5;
+  const T = (JD - 2451545.0) / 36525.0;
+
+  let GMST = 6.697374558 + 2400.051336 * T + 0.000025862 * T * T;
+  const UT = utcDate.getUTCHours() + utcDate.getUTCMinutes() / 60 + utcDate.getUTCSeconds() / 3600;
+  GMST += UT * 1.002737909;
+  GMST = (GMST % 24) * 15;
+
+  let LST = GMST + lng;
+  LST = (LST + 360) % 360;
+
+  const obliquity = 23.4393;
+  const asc = Math.atan2(
+    -Math.cos(LST * Math.PI / 180),
+    Math.sin(obliquity * Math.PI / 180) * Math.tan(lat * Math.PI / 180) +
+    Math.cos(obliquity * Math.PI / 180) * Math.sin(LST * Math.PI / 180)
+  ) * 180 / Math.PI;
+  const ascDeg = (asc + 360) % 360;
 
   const signes = [
-    { nom: "Bélier", start: "03-21", end: "04-19" },
-    { nom: "Taureau", start: "04-20", end: "05-20" },
-    { nom: "Gémeaux", start: "05-21", end: "06-20" },
-    { nom: "Cancer", start: "06-21", end: "07-22" },
-    { nom: "Lion", start: "07-23", end: "08-22" },
-    { nom: "Vierge", start: "08-23", end: "09-22" },
-    { nom: "Balance", start: "09-23", end: "10-22" },
-    { nom: "Scorpion", start: "10-23", end: "11-21" },
-    { nom: "Sagittaire", start: "11-22", end: "12-21" },
-    { nom: "Capricorne", start: "12-22", end: "01-19" },
-    { nom: "Verseau", start: "01-20", end: "02-18" },
-    { nom: "Poissons", start: "02-19", end: "03-20" }
+    t("Bélier"), t("Taureau"), t("Gémeaux"), t("Cancer"),
+    t("Lion"), t("Vierge"), t("Balance"), t("Scorpion"),
+    t("Sagittaire"), t("Capricorne"), t("Verseau"), t("Poissons")
   ];
+  const signeAsc = signes[Math.floor(((ascDeg + 30) % 360) / 30)];
+  return signeAsc;
+}
 
-  function getSigne(date) {
-    const [year, month, day] = date.split("-");
-    const dateRef = `${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-    for (let i = 0; i < signes.length; i++) {
-      const { nom, start, end } = signes[i];
-      if (
-        (start <= dateRef && dateRef <= end) ||
-        (start > end && (dateRef >= start || dateRef <= end))
-      ) {
-        return nom;
-      }
-    }
-    return "Inconnu";
-  }
+// Pour charger la langue au lancement :
+loadLang(langCode);
 
-  function getAscendant(heure) {
-    if (!heure) return "Inconnu";
-    const [h] = heure.split(":").map(Number);
-    if (h >= 6 && h < 8) return "Bélier";
-    if (h >= 8 && h < 10) return "Taureau";
-    if (h >= 10 && h < 12) return "Gémeaux";
-    if (h >= 12 && h < 14) return "Cancer";
-    if (h >= 14 && h < 16) return "Lion";
-    if (h >= 16 && h < 18) return "Vierge";
-    if (h >= 18 && h < 20) return "Balance";
-    if (h >= 20 && h < 22) return "Scorpion";
-    if (h >= 22 || h < 0) return "Sagittaire";
-    if (h >= 0 && h < 2) return "Capricorne";
-    if (h >= 2 && h < 4) return "Verseau";
-    if (h >= 4 && h < 6) return "Poissons";
-    return "Inconnu";
-  }
+// Pour changer de langue dynamiquement (ex : anglais)
+// loadLang("en");
 
-  astroForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const birthDate = document.getElementById("birth-date").value;
-    const birthTime = document.getElementById("birth-time").value;
-
-    if (!birthDate) {
-      alert("Veuillez saisir une date de naissance.");
-      return;
-    }
-
-    const signe = getSigne(birthDate);
-    const ascendant = getAscendant(birthTime);
-
-    signeEl.textContent = signe;
-    ascendantEl.textContent = ascendant;
-    resultats.classList.remove("hidden");
-  });
-});
+// Utilisation exemple (quand cities est chargé)
+// const signe = getSigneSolaire("1992-06-23");
+// const asc = calculAscendant("1992-06-23", "15:30", "Paris", cities);
+// document.getElementById("signe").textContent = `${t("Signe solaire")} : ${signe}`;
+// document.getElementById("ascendant").textContent = `${t("Ascendant")} : ${asc}`;
